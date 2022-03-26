@@ -1,52 +1,19 @@
+import 'package:clima/screens/loading_screen.dart';
+import 'package:clima/screens/providers/weather_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:clima/utilities/constants.dart';
-import 'package:clima/services/weather.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'city_screen.dart';
+ 
+final cityProvider = StateProvider<String>((ref)=>'');
 
-class LocationScreen extends StatefulWidget {
-  LocationScreen({this.locationweather});
-
-  final locationweather;
+class LocationScreen extends ConsumerWidget {
+  
   @override
-  _LocationScreenState createState() => _LocationScreenState();
-}
-
-class _LocationScreenState extends State<LocationScreen> {
-  WeatherModel weather = WeatherModel();
-  int temperature;
-  String weatherIcon;
-  String cityName;
-  String weatherMessage;
-
-  @override
-  void initState() {
-    super.initState();
-
-    updateUI(widget.locationweather);
-  }
-
-  void updateUI(dynamic weatherData) {
-    setState(() {
-      if (weatherData == null) {
-        temperature = 0;
-        weatherIcon = 'Error';
-        weatherMessage = 'Unable to get weather Data';
-        cityName = '';
-        return;
-      }
-
-      double temp = weatherData['main']['temp'];
-      temperature = temp.toInt();
-      var condition = weatherData['weather'][0]['id'];
-      weatherIcon = weather.getWeatherIcon(condition);
-      weatherMessage = weather.getMessage(temperature);
-      cityName = weatherData['name'];
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final city = ref.watch(cityProvider.state);
+    final weatherAsync = ref.watch(weatherProvider(city.state));
+    return weatherAsync.when(data: (weather)=>Scaffold(
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -67,8 +34,8 @@ class _LocationScreenState extends State<LocationScreen> {
                 children: <Widget>[
                   TextButton(
                     onPressed: () async {
-                      var weatherData = await weather.getLocationWeather();
-                      updateUI(weatherData);
+                      // var weatherData = await weather.getLocationWeather();
+                      // updateUI(weatherData);
                     },
                     child: Icon(
                       Icons.near_me,
@@ -87,9 +54,7 @@ class _LocationScreenState extends State<LocationScreen> {
                         ),
                       );
                       if (typedName != null) {
-                        var weatherData =
-                            await weather.getCityWeather(typedName);
-                        updateUI(weatherData);
+                        city.state = typedName;
                       }
                     },
                     child: Icon(
@@ -105,11 +70,11 @@ class _LocationScreenState extends State<LocationScreen> {
                 child: Row(
                   children: <Widget>[
                     Text(
-                      '$temperature°',
+                      '${weather.temp}°',
                       style: kTempTextStyle,
                     ),
                     Text(
-                      weatherIcon,
+                      weather.getWeatherIcon,
                       style: kConditionTextStyle,
                     ),
                   ],
@@ -118,7 +83,7 @@ class _LocationScreenState extends State<LocationScreen> {
               Padding(
                 padding: EdgeInsets.only(right: 15.0),
                 child: Text(
-                  '$weatherMessage in $cityName',
+                  '${weather.getMessage} in ${weather.name}',
                   textAlign: TextAlign.right,
                   style: kMessageTextStyle,
                 ),
@@ -127,6 +92,8 @@ class _LocationScreenState extends State<LocationScreen> {
           ),
         ),
       ),
-    );
+    )
+  , error: (e,s)=>Scaffold(), loading: ()=>LoadingScreen());
+
   }
 }
