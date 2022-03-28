@@ -1,3 +1,4 @@
+
 import 'package:clima/screens/loading_screen.dart';
 import 'package:clima/screens/providers/weather_provider.dart';
 import 'package:flutter/material.dart';
@@ -13,87 +14,91 @@ class LocationScreen extends ConsumerWidget {
     final city = ref.watch(cityProvider.state);
     final weatherAsync = ref.watch(weatherProvider(city.state));
     return weatherAsync.when(
-        data: (weather) => Scaffold(
-              body: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('images/location_background.jpg'),
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                        Colors.white.withOpacity(0.8), BlendMode.dstATop),
-                  ),
+      data: (weather) => Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('images/location_background.jpg'),
+              fit: BoxFit.cover,
+              colorFilter: ColorFilter.mode(
+                  Colors.white.withOpacity(0.8), BlendMode.dstATop),
+            ),
+          ),
+          constraints: BoxConstraints.expand(),
+          child: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    TextButton(
+                      onPressed: () async {
+                        city.state = '';
+                      },
+                      child: Icon(
+                        Icons.near_me,
+                        size: 50.0,
+                        color: Colors.white,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        var typedName = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return CityScreen();
+                            },
+                          ),
+                        );
+                        if (typedName != null) {
+                          city.state = typedName;
+                        }
+                      },
+                      child: Icon(
+                        Icons.location_city,
+                        size: 50.0,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-                constraints: BoxConstraints.expand(),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                Padding(
+                  padding: EdgeInsets.only(left: 15.0),
+                  child: Row(
                     children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          TextButton(
-                            onPressed: () async {
-                              // var weatherData = await weather.getLocationWeather();
-                              // updateUI(weatherData);
-                            },
-                            child: Icon(
-                              Icons.near_me,
-                              size: 50.0,
-                              color: Colors.white,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              var typedName = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return CityScreen();
-                                  },
-                                ),
-                              );
-                              if (typedName != null) {
-                                city.state = typedName;
-                              }
-                            },
-                            child: Icon(
-                              Icons.location_city,
-                              size: 50.0,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        '${weather.temp}°',
+                        style: kTempTextStyle,
                       ),
-                      Padding(
-                        padding: EdgeInsets.only(left: 15.0),
-                        child: Row(
-                          children: <Widget>[
-                            Text(
-                              '${weather.temp}°',
-                              style: kTempTextStyle,
-                            ),
-                            Text(
-                              weather.getWeatherIcon,
-                              style: kConditionTextStyle,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(right: 15.0),
-                        child: Text(
-                          '${weather.getMessage} in ${weather.name}',
-                          textAlign: TextAlign.right,
-                          style: kMessageTextStyle,
-                        ),
+                      Text(
+                        weather.getWeatherIcon,
+                        style: kConditionTextStyle,
                       ),
                     ],
                   ),
                 ),
-              ),
+                Padding(
+                  padding: EdgeInsets.only(right: 15.0),
+                  child: Text(
+                    '${weather.getMessage} in ${weather.name}',
+                    textAlign: TextAlign.right,
+                    style: kMessageTextStyle,
+                  ),
+                ),
+              ],
             ),
-        error: (e, s) => Scaffold(),
-        loading: () => LoadingScreen());
+          ),
+        ),
+      ),
+      error: (e, s) => Scaffold(
+        body: Center(
+          child: Text('$e'),
+        ),
+      ),
+      loading: () => LoadingScreen(),
+    );
   }
 }

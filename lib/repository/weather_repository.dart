@@ -3,7 +3,6 @@ import 'package:clima/model/models.dart';
 import '../services/location.dart';
 import 'package:http/http.dart' as http;
 
-
 class WeatherRepository {
   final apiKey = '56996242f92ae790e2fc19ccca695369';
   final openWeatherMapURL = 'https://api.openweathermap.org/data/2.5/weather';
@@ -19,9 +18,11 @@ class WeatherRepository {
   Future<Weather> getLocationWeather() async {
     Location location = Location();
     await location.getCurrentLocation();
-
+    if (location.position == null) {
+      return Future.error("No location enabled!");
+    }
     NetworkHelper networkHelper = NetworkHelper(
-        '$openWeatherMapURL?lat=${location.latitude}&lon=${location.longitude}&appid=$apiKey&units=metric');
+        '$openWeatherMapURL?lat=${location.position!.latitude}&lon=${location.position!.longitude}&appid=$apiKey&units=metric');
 
     var weatherData = await networkHelper.getData();
     return weatherData;
